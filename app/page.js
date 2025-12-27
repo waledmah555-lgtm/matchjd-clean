@@ -47,57 +47,171 @@ export default function Home() {
   }
 
   return (
-    <main style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}>
-      <h1>MatchJD</h1>
-      <p>
-        Upload your resume or paste text, add the job description, and generate
-        an ATS-friendly aligned resume.
-      </p>
+  <main
+    style={{
+      maxWidth: 900,
+      margin: "40px auto",
+      padding: 24
+    }}
+  >
+    {/* Header */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 24
+      }}
+    >
+      <h1 style={{ margin: 0, fontSize: 28, letterSpacing: 0.5 }}>
+        JDMATCH
+      </h1>
+      <span style={{ fontSize: 13, opacity: 0.75 }}>
+        ATS-safe • No fake skills
+      </span>
+    </div>
 
-      <label><b>Upload Resume (PDF/DOCX)</b></label>
+    {/* Intro */}
+    <div
+      style={{
+        background: "#ffffff",
+        borderRadius: 14,
+        padding: 20,
+        marginBottom: 24,
+        border: "1px solid #e5e5e5"
+      }}
+    >
+      <p style={{ margin: 0, lineHeight: 1.6 }}>
+        Align your resume to a specific job description — without adding
+        fake experience or skills. Designed for <b>freshers & entry-level</b>{" "}
+        candidates.
+      </p>
+    </div>
+
+    {/* Form */}
+    <div
+      style={{
+        background: "#ffffff",
+        borderRadius: 16,
+        padding: 24,
+        border: "1px solid #e5e5e5"
+      }}
+    >
+      <label style={{ fontWeight: 600 }}>Upload Resume (PDF / DOCX)</label>
       <input
         type="file"
         accept=".pdf,.docx"
         onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+        style={{
+          display: "block",
+          marginTop: 8,
+          marginBottom: 16
+        }}
       />
 
-      <br /><br />
-
-      <label><b>Resume Text (optional)</b></label>
+      <label style={{ fontWeight: 600 }}>
+        Resume Text <span style={{ opacity: 0.6 }}>(optional)</span>
+      </label>
       <textarea
-        rows={8}
+        rows={7}
         value={resumeText}
         onChange={(e) => setResumeText(e.target.value)}
-        style={{ width: "100%" }}
+        style={{
+          width: "100%",
+          marginTop: 8,
+          marginBottom: 16,
+          padding: 12,
+          borderRadius: 10,
+          border: "1px solid #ccc"
+        }}
       />
 
-      <br /><br />
-
-      <label><b>Job Description</b></label>
+      <label style={{ fontWeight: 600 }}>Job Description</label>
       <textarea
-        rows={8}
+        rows={7}
         value={jobDescription}
         onChange={(e) => setJobDescription(e.target.value)}
-        style={{ width: "100%" }}
+        style={{
+          width: "100%",
+          marginTop: 8,
+          marginBottom: 20,
+          padding: 12,
+          borderRadius: 10,
+          border: "1px solid #ccc"
+        }}
       />
 
-      <br /><br />
-
-      <button onClick={generate} disabled={loading}>
-        {loading ? "Generating..." : "Generate"}
+      <button
+        onClick={generate}
+        disabled={loading}
+        style={{
+          width: "100%",
+          padding: "14px 16px",
+          borderRadius: 12,
+          border: "none",
+          background: loading ? "#aaa" : "#111",
+          color: "#fff",
+          fontWeight: 600,
+          cursor: loading ? "not-allowed" : "pointer"
+        }}
+      >
+        {loading ? "Generating…" : "Generate Aligned Resume"}
       </button>
 
-      {err && <p style={{ color: "red" }}>{err}</p>}
+      {err && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 12,
+            background: "#ffecec",
+            border: "1px solid #ffbdbd",
+            borderRadius: 10,
+            color: "#b00000"
+          }}
+        >
+          {err}
+        </div>
+      )}
+    </div>
 
-      <br />
-
+    {/* Output */}
+    <div
+      style={{
+        marginTop: 30,
+        background: "#ffffff",
+        borderRadius: 16,
+        padding: 24,
+        border: "1px solid #e5e5e5"
+      }}
+    >
+      <h3 style={{ marginTop: 0 }}>Result</h3>
       <textarea
         rows={18}
         readOnly
         value={result}
-        style={{ width: "100%" }}
-        placeholder="Result will appear here"
+        placeholder="Your tailored resume will appear here."
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 10,
+          border: "1px solid #ccc"
+        }}
       />
-    </main>
-  );
+    </div>
+
+    {/* Footer */}
+    <p
+      style={{
+        marginTop: 24,
+        fontSize: 13,
+        opacity: 0.7,
+        textAlign: "center"
+      }}
+    >
+      JDMATCH does not add fake skills or experience. Always review before
+      applying.
+    </p>
+  </main>
+);
+
 }
