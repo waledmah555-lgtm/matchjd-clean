@@ -43,21 +43,78 @@ export async function POST(req) {
       apiKey: process.env.OPENAI_API_KEY
     });
 
-    const prompt = `
-You are JDMATCH, a resume alignment engine for Indian freshers.
+let prompt;
 
+const levelValue = form.get("level")?.toString() || "Auto";
+
+switch (levelValue) {
+  case "Fresher":
+    prompt = `
+You are JDMATCH, a resume alignment engine specialized for Indian freshers.
 RULES:
-- Do NOT add skills, experience, or facts not in the resume
-- Do NOT invent anything
-- Reorder and rephrase ONLY
-- Output ONLY the resume
-
+1. Do NOT add any skills, experience, or facts not present in the resume.
+2. Focus on projects, internships, coursework, certifications, volunteering.
+3. Reorder and rephrase for clarity and ATS optimization.
+4. Match keywords from job description naturally.
+5. Keep bullet points concise; no fluff.
+6. Output ONLY the revised resume text.
 RESUME:
 ${resumeText}
-
 JOB DESCRIPTION:
 ${jobDescription}
 `;
+    break;
+
+  case "Mid-level":
+    prompt = `
+You are JDMATCH, specialized for Indian mid-level professionals.
+RULES:
+1. Do NOT add any skills or experience not present.
+2. Focus on measurable achievements, projects, KPIs.
+3. Reorder and rephrase for clarity and ATS optimization.
+4. Match keywords from job description naturally.
+5. Keep bullet points concise; no fluff.
+6. Output ONLY the revised resume text.
+RESUME:
+${resumeText}
+JOB DESCRIPTION:
+${jobDescription}
+`;
+    break;
+
+  case "Senior-level":
+    prompt = `
+You are JDMATCH, specialized for Indian senior-level professionals.
+RULES:
+1. Do NOT add any skills or experience not present.
+2. Focus on leadership, strategy, team management, impact.
+3. Reorder and rephrase for clarity and ATS optimization.
+4. Match keywords from job description naturally.
+5. Keep bullet points concise; no fluff.
+6. Output ONLY the revised resume text.
+RESUME:
+${resumeText}
+JOB DESCRIPTION:
+${jobDescription}
+`;
+    break;
+
+  default: // Auto
+    prompt = `
+You are JDMATCH, specialized for all experience levels.
+RULES:
+1. Do NOT add any skills or experience not present.
+2. Detect experience level from resume.
+3. Apply fresher, mid-level, or senior-level rules as appropriate.
+4. Reorder and rephrase for clarity and ATS optimization.
+5. Output ONLY the revised resume text.
+RESUME:
+${resumeText}
+JOB DESCRIPTION:
+${jobDescription}
+`;
+}
+
 
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
