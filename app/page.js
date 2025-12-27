@@ -9,6 +9,7 @@ export default function Home() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [level, setLevel] = useState("Auto"); // new dropdown state
 
   async function generate() {
     setErr("");
@@ -29,6 +30,7 @@ export default function Home() {
       if (resumeFile) form.append("resumeFile", resumeFile);
       form.append("resumeText", resumeText);
       form.append("jobDescription", jobDescription);
+      form.append("level", level); // send selected level to backend
 
       const r = await fetch("/api/generate", {
         method: "POST",
@@ -77,12 +79,20 @@ export default function Home() {
       {/* Intro */}
       <div style={{ background: "#fff", borderRadius: 14, padding: 20, marginBottom: 24, border: "1px solid #e5e5e5" }}>
         <p style={{ margin: 0, lineHeight: 1.6 }}>
-          Align your resume to a specific job description — without adding fake experience or skills. Designed for <b>freshers & entry-level</b> candidates.
+          Align your resume to a specific job description — without adding fake experience or skills. Designed for <b>any experience level</b>.
         </p>
       </div>
 
       {/* Form */}
       <div style={{ background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e5e5e5" }}>
+        <label style={{ fontWeight: 600 }}>Select Level</label>
+        <select value={level} onChange={(e) => setLevel(e.target.value)} style={{ display: "block", marginTop: 8, marginBottom: 16, padding: 10, borderRadius: 10, border: "1px solid #ccc" }}>
+          <option>Auto</option>
+          <option>Fresher</option>
+          <option>Mid-level</option>
+          <option>Senior-level</option>
+        </select>
+
         <label style={{ fontWeight: 600 }}>Upload Resume (PDF / DOCX)</label>
         <input type="file" accept=".pdf,.docx" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} style={{ display: "block", marginTop: 8, marginBottom: 16 }} />
 
