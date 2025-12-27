@@ -44,7 +44,7 @@ export async function POST(req) {
     });
 
     const prompt = `
-You are MatchJD, a resume alignment engine.
+You are JDMATCH, a resume alignment engine for Indian freshers.
 
 RULES:
 - Do NOT add skills, experience, or facts not in the resume
