@@ -46,6 +46,26 @@ export default function Home() {
     }
   }
 
+  async function downloadDocx() {
+    if (!result) return;
+    try {
+      const r = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: result }),
+      });
+      const blob = await r.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "JDMATCH_Resume.docx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Download failed: " + e.message);
+    }
+  }
+
   return (
     <main style={{ maxWidth: 900, margin: "40px auto", padding: 24 }}>
       {/* Header */}
@@ -83,6 +103,11 @@ export default function Home() {
       <div style={{ marginTop: 30, background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e5e5e5" }}>
         <h3 style={{ marginTop: 0 }}>Result</h3>
         <textarea rows={18} readOnly value={result} placeholder="Your tailored resume will appear here." style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #ccc" }} />
+        {result && (
+          <button onClick={downloadDocx} style={{ marginTop: 16, width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "#0b66ff", color: "#fff", fontWeight: 600, cursor: "pointer" }}>
+            Download DOCX
+          </button>
+        )}
       </div>
 
       {/* Footer */}
