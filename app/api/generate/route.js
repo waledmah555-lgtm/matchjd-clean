@@ -1,55 +1,30 @@
-import OpenAI from "openai";
-import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
+import { OpenAI } from "openai";
 
 export const runtime = "nodejs";
 
-async function fileToText(file) {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const name = file.name.toLowerCase();
-
-  if (name.endsWith(".docx")) {
-    const { value } = await mammoth.extractRawText({ buffer });
-    return value || "";
-  }
-
-  if (name.endsWith(".pdf")) {
-    const data = await pdfParse(buffer);
-    return data.text || "";
-  }
-
-  throw new Error("Unsupported file type");
-}
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req) {
   try {
     const form = await req.formData();
-    const resumeFile = form.get("resumeFile");
-    const resumeText =
-      resumeFile && resumeFile.size > 0
-        ? await fileToText(resumeFile)
-        : (form.get("resumeText") || "").toString();
+    const resumeText = form.get("resumeText")?.toString() || "";
+    const jobDescription = form.get("jobDescription")?.toString() || "";
+    const levelValue = form.get("level")?.toString() || "Auto";
 
-    const jobDescription = (form.get("jobDescription") || "").toString();
-
-    if (!resumeText.trim() || !jobDescription.trim()) {
-      return Response.json(
-        { error: "Missing resume or job description" },
-        { status: 400 }
-      );
+    if (!resumeText && !form.get("resumeFile")) {
+      return Response.json({ error: "Please provide resume text or file." }, { status: 400 });
+    }
+    if (!jobDescription) {
+      return Response.json({ error: "Please provide a job description." }, { status: 400 });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-
-let prompt;
-
-const levelValue = form.get("level")?.toString() || "Auto";
-
-switch (levelValue) {
-  case "Fresher":
-    prompt = `
+    // Level-based prompt selection
+    let prompt;
+    switch (levelValue) {
+      case "Fresher":
+        prompt = `
 You are JDMATCH, a resume alignment engine specialized for Indian freshers.
 RULES:
 1. Do NOT add any skills, experience, or facts not present in the resume.
@@ -63,10 +38,10 @@ ${resumeText}
 JOB DESCRIPTION:
 ${jobDescription}
 `;
-    break;
+        break;
 
-  case "Mid-level":
-    prompt = `
+      case "Mid-level":
+        prompt = `
 You are JDMATCH, specialized for Indian mid-level professionals.
 RULES:
 1. Do NOT add any skills or experience not present.
@@ -80,10 +55,10 @@ ${resumeText}
 JOB DESCRIPTION:
 ${jobDescription}
 `;
-    break;
+        break;
 
-  case "Senior-level":
-    prompt = `
+      case "Senior-level":
+        prompt = `
 You are JDMATCH, specialized for Indian senior-level professionals.
 RULES:
 1. Do NOT add any skills or experience not present.
@@ -97,10 +72,10 @@ ${resumeText}
 JOB DESCRIPTION:
 ${jobDescription}
 `;
-    break;
+        break;
 
-  default: // Auto
-    prompt = `
+      default: // Auto
+        prompt = `
 You are JDMATCH, specialized for all experience levels.
 RULES:
 1. Do NOT add any skills or experience not present.
@@ -113,19 +88,39 @@ ${resumeText}
 JOB DESCRIPTION:
 ${jobDescription}
 `;
-}
+        break;
+    }
 
-
+    // OpenAI API call
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.2
+      temperature: 0.7,
+      max_tokens: 2000,
     });
+
+    const aiResult = response.choices?.[0]?.message?.content?.trim() || "";
+
+    // Calculate resume match %
+    function calculateMatch(resume, jd) {
+      const jdWords = jd.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
+      const jdSet = new Set(jdWords);
+      const resumeWords = resume.toLowerCase().split(/\W+/);
+      const matched = resumeWords.filter((w) => jdSet.has(w));
+      return Math.min(100, Math.round((matched.length / jdSet.size) * 100));
+    }
+
+    const originalScore = calculateMatch(resumeText, jobDescription);
+    const newScore = calculateMatch(aiResult, jobDescription);
 
     return Response.json({
-      result: response.choices[0].message.content
+      result: aiResult,
+      originalScore,
+      newScore,
     });
-  } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: error.message || "Something went wrong" }, { status: 500 });
   }
 }
